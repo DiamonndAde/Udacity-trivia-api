@@ -24,31 +24,57 @@ pip install -r requirements.txt
 
 ### Set up the Database
 
-With Postgres running, create a `trivia` database:
+Go to your SQL Shell to create a `trivia` database:
 
 ```bash
-createdb trivia
+CREATE DATABASE trivia;
 ```
 
-Populate the database using the `trivia.psql` file provided. From the `backend` folder in terminal run:
+Then, navigate to the `backend` and run this👇 on your terminal depending what your username, password, localhost or port is:
 
 ```bash
-psql trivia < trivia.psql
+postgresql://<username>:<password>@<hostname>:<port>/<database>
+```
+
+#### Populate the Database
+
+After running the above👆 and it worked, run this👇 after:
+
+```bash
+\i trivia.psql
 ```
 
 ### Run the Server
 
-From within the `./src` directory first ensure you are working using your created virtual environment.
+From within the `backend` directory.
 
-To run the server, execute:
+To run the server, execute this👇 to start the server:
 
 ```bash
-flask run --reload
+pg_ctl -D "C:\Program Files\PostgreSQL\14\data" start
 ```
 
-The `--reload` flag will detect file changes and restart the server automatically.
+Execute this👇 to stop the server but keep the server on until you are done with the projet:
 
-## To Do Tasks
+```bash
+pg_ctl -D "C:\Program Files\PostgreSQL\14\data" stop
+```
+
+To run the flask app execute this👇:
+
+```bash
+export FLASK_APP=flaskr
+export FLASK_ENV=development
+flask run
+```
+
+If the `flask run` is resulting to errors, run this instead:
+
+```bash
+python -m flask run
+```
+
+## Tasks
 
 These are the files you'd want to edit in the backend:
 
@@ -67,15 +93,10 @@ One note before you delve into your tasks: for each endpoint, you are expected t
 8. Create a `POST` endpoint to get questions to play the quiz. This endpoint should take a category and previous question parameters and return a random questions within the given category, if provided, and that is not one of the previous questions.
 9. Create error handlers for all expected errors including 400, 404, 422, and 500.
 
-## Documenting your Endpoints
+## API DOCUMENTATION
 
-You will need to provide detailed documentation of your API endpoints including the URL, request parameters, and the response body. Use the example below as a reference.
+GET `/categories`, fetches all available categories in an object
 
-### Documentation Example
-
-`GET '/api/v1.0/categories'`
-
-- Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
 - Request Arguments: None
 - Returns: An object with a single key, `categories`, that contains an object of `id: category_string` key: value pairs.
 
@@ -87,6 +108,136 @@ You will need to provide detailed documentation of your API endpoints including 
   "4": "History",
   "5": "Entertainment",
   "6": "Sports"
+}
+```
+
+GET `questions?page=<page_num>`, fetches paginated object of all the categories
+
+- Request Arguments: page_num(optional)
+- Example:
+
+```json
+{
+  "categories": {
+    "1": "Science",
+    "2": "Art",
+    "3": "Geography",
+    "4": "History",
+    "5": "Entertainment",
+    "6": "Sports"
+  },
+  "current_category": null,
+  "questions": [
+    {
+      "answer": "Maya Angelou",
+      "category": 4,
+      "difficulty": 2,
+      "id": 5,
+      "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+    },
+    {
+      "answer": "Escher",
+      "category": 2,
+      "difficulty": 1,
+      "id": 16,
+      "question": "Which Dutch graphic artist\u2013initials M C was a creator of optical illusions?"
+    }
+  ],
+  "success": true,
+  "total_questions": 2
+}
+```
+
+DELETE `/questions/<question_id>`, deletes an existing questions from the repository of available questions
+
+- Request Arguments: question_id
+- Example:
+
+```json
+{
+  "deleted": "5",
+  "success": true
+}
+```
+
+POST `/questions`, adds a new question to the repository of available questions
+
+- Request Arguments: {question, answer, difficulty, category}
+- Example:
+
+```json
+{
+  "created": "6",
+  "success": true
+}
+```
+
+POST `/questions/search` Fetches all questions where a substring matches the search term (case-insensitive)
+
+- Request Arguments: {search_term}
+- Example:
+
+```json
+{
+  "current_category": null,
+  "questions": [
+    {
+      "answer": "Abuja",
+      "category": 2,
+      "difficulty": 1,
+      "id": 29,
+      "question": "What is the capital of Nigeria?"
+    }
+  ],
+  "success": true,
+  "total_questions": 1
+}
+```
+
+GET `/categories/<int:category_id>/questions`, fetches a dictionary of questions for the specified category
+
+- Request Arguments: category_id
+- Example:
+
+```json
+{
+  "current_category": 1,
+  "questions": [
+    {
+      "answer": "The Liver",
+      "category": 1,
+      "difficulty": 4,
+      "id": 20,
+      "question": "What is the heaviest organ in the human body?"
+    },
+    {
+      "answer": "Alexander Fleming",
+      "category": 1,
+      "difficulty": 3,
+      "id": 21,
+      "question": "Who discovered penicillin?"
+    }
+  ],
+  "success": true,
+  "total_questions": 2
+}
+```
+
+POST `/quizzes`, fetches one random question within a specified category. Previously asked questions are not asked again.
+
+- Request Arguments: {previous_questions: arr, quiz_category}
+- Example:
+
+```json
+{
+  "question": {
+    "answer": "The Liver",
+    "category": 1,
+    "difficulty": 4,
+    "id": 20,
+    "question": "What is the heaviest organ in the human body?"
+  },
+  "success": true
 }
 ```
 
