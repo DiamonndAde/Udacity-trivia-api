@@ -120,13 +120,14 @@ def create_app(test_config=None):
     def add_question():
         body = request.get_json()
 
-        if not ('question' in body and 'answer' in body and 'difficulty' in body and 'category' in body):
-            abort(422)
-
         new_question = body.get('question')
         new_answer = body.get('answer')
         new_difficulty = body.get('difficulty')
         new_category = body.get('category')
+
+        if ((new_question is None) or (new_answer is None)
+                or (new_difficulty is None) or (new_category is None)):
+            abort(422)
 
         try:
             question = Question(question=new_question, answer=new_answer,
@@ -207,33 +208,45 @@ def create_app(test_config=None):
     """
     @app.route('/quizzes', methods=['POST'])
     def play_quiz():
+        body = request.get_json()
+        previous_question = body.get('previous_questions')
+        category = body.get('quiz_category')
 
-        try:
+        if ((category is None) or (previous_question is None)):
+            abort(400)
 
-            body = request.get_json()
+        if (category['id'] == 0):
+            questions = Question.query.all()
+        else:
+            questions = Question.query.filter_by(category=category['id']).all()
 
-            if not ('quiz_category' in body and 'previous_questions' in body):
-                abort(422)
+        total = len(questions)
 
-            category = body.get('quiz_category')
-            previous_questions = body.get('previous_questions')
+        def random_question():
+            return questions[random.randrange(0, len(questions), 1)]
 
-            if category['type'] == 'click':
-                available_questions = Question.query.filter(
-                    Question.id.notin_((previous_questions))).all()
-            else:
-                available_questions = Question.query.filter_by(
-                    category=category['id']).filter(Question.id.notin_((previous_questions))).all()
+        def check_if_used(question):
+            used_question = False
+            for q in previous_question:
+                if (q == question.id):
+                    used_question = True
 
-            new_question = available_questions[random.randrange(
-                0, len(available_questions))].format() if len(available_questions) > 0 else None
+            return used_question
 
-            return jsonify({
-                'success': True,
-                'question': new_question
-            })
-        except:
-            abort(422)
+        question = random_question()
+
+        while (check_if_used(question)):
+            question = random_question()
+
+            if (len(previous_question) == total):
+                return jsonify({
+                    'success': True
+                })
+
+        return jsonify({
+            'success': True,
+            'question': question.format()
+        })
 
     """
     @TODO:
